@@ -11,6 +11,7 @@ drive.mount('/content/drive')
 ## 2. 재학습 코드 (2025년 7월 기준 최신화)
 ### 2.1 라이브러리 임포트
 from ultralytics import YOLO 
+from glob import glob
 import os
 import cv2
 import numpy as np
@@ -32,5 +33,43 @@ with open(yaml_path, 'w') as f: # yaml_path 의 내용 정의
   f.write(data_yaml)
   
 ### 2.3 데이터셋 구성 부분 (만약 마스크 데이터가 png일 경우 라벨을 txt 형태로 바꾸어야함. yolo-seg 8버전 이후) / txt로 이미 있거나 seg가 아닐경우 안써도 됨
+def convert_mask_to_text(mask_path, txt_path, target_pixel_value=255, class_id=0):
+ mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE) # 흑백으로 거져오기
+ h, w = mask.shape
 
+ binary = (mask == target_pixel_value).astype(np.uint8) * 255 # Boolearn 형태 (True = 255, False = 0)
+ contours,_= cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) # 객체 경계 좌표 추출 (contours 값을 기록)
 
+ 
+ with open(txt_path) as f:
+  for cnt in contours:
+   if len(cnt) < 3:
+    continue # 폴리곤은 최소 3개의 점으로 경계를 나타냄
+   normalized = [f"{pt[0][0] / w:.6f} {pt[0][1] / h:.6f}" for pt in cnt] # 사진의 비율에 맞게 기입, 중요
+   line = f"{class_id}" + " ".join(normalized) + "\n" # 줄당 입력되어지는 단어
+   f.write(line)
+
+## 라벨 생성
+splits = ['train', 'val']
+for split in splits:
+ mask_dir = f"/content/{split}/mask_path"
+ label_dir = f"/content/{split}/labels"
+ os.makedirs(labels_dir, exist_ok=True) # 파일 만들기
+
+ mask_paths = glob(f"{mask_dir}"/*.png) # 파일 형식에 따라 다름, png 주의하기
+
+ for i, mask_path in enumerate(mask_paths): # 파일 지정 이름 부분
+  file_name = os.path.splitext(os.path.basename(mask_path))[0] # 파일이름은 GT와 동일해야함
+  txt_path = os.path.join(label_dir,f"{file_name}".txt)
+
+  if os.path.exists(txt_path):
+   # print(f"[{i+1}/len(mask_paths)] {file_name}.txt 존재 확인됨 (계산 넘김)")
+   continue
+
+  convert_mask_to_txt(mask_path, txt_path) # mask_path의 for문 단위로 진행
+
+### 3. 모델 가져오고 학습 (울트라틱스의 사이트 참고)
+
+model = YOLO("yolo11n-seg.pt") # 가져오고 싶은 모델
+
+model.train(data = data_yaml, epochs = 10, imgsz=512, batch_size=4) 
