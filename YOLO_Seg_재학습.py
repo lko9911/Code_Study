@@ -1,5 +1,7 @@
 # YOLO_재학습 코드는 울트라틱스의 사전 학습 yolo 모델을 가져와 COLAB에서 학습 시킨다.
 # COLAB 기준 YOLO의 경우 A100 GPU나 T4 GPU를 사용헤야 하며 A100이 조금더 빠르나 비용이 많이듦
+# 참고사이트 : https://docs.ultralytics.com/ko/
+# 데이터셋 사이트 : https://docs.ultralytics.com/ko/datasets/#contribute-new-datasets
 
 ## 울트리틱스 라이브러리 설치 (COLAB의 경우 무조건 설치해야 함)
 !pip install ultralytics
