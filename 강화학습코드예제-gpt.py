@@ -34,7 +34,7 @@ epsilon_decay = 0.995
 epsilon_min = 0.01
 batch_size = 64
 memory = deque(maxlen=10000)
-episodes = 500
+episodes = 100
 
 # 네트워크와 옵티마이저
 q_network = DQN(state_dim, action_dim)
@@ -65,7 +65,7 @@ def train():
 
 # 메인 루프
 for episode in range(episodes):
-    state = env.reset()
+    state, _ = env.reset()  # 최신 Gym은 (obs, info) 반환
     total_reward = 0
     done = False
     while not done:
@@ -74,7 +74,10 @@ for episode in range(episodes):
         else:
             with torch.no_grad():
                 action = q_network(torch.FloatTensor(state)).argmax().item()
-        next_state, reward, done, _ = env.step(action)
+
+        next_state, reward, terminated, truncated, _ = env.step(action)
+        done = terminated or truncated
+
         memory.append((state, action, reward, next_state, float(done)))
         state = next_state
         total_reward += reward
