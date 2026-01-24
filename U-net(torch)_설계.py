@@ -1,4 +1,4 @@
-# 1. 라이르러리
+# 1. 라이러러리
 import os
 import cv2
 import torch
@@ -13,19 +13,19 @@ import albumentations as A
 from albumentations.pytorch import ToTensorV2
 import matplotlib.pyplot as plt
 
-# 2. 사용할 데이터셋 정의 (데이터 수 증강만 할거면 여기서 하는게 편함)
+# 2. 사용할 데이터셋 정의
 Class Dataset(Dataset):
   def __init__(self, images_dir, labels_dir, transform=None):
     self.images_dir = images_dir
     self.labels_dir = labels_dir
-    self.transform = transfor
+    self.transform = transform
 
     # 이미지 및 라벨 파일 목록 생
     self.images_files = sorted(os.listdir(images_dir))
     # self.labels_dir = sorted(os.listdir(labels_dir))
     self.labels_files = sorted([
       f for f in os.listdir(labels_dir)
-      if f.endswith('pnd') # 파일 형신 지정하기, 필요 없으면 위에 주석으로
+      if f.endswith('png') # 파일 형신 지정하기, 필요 없으면 위에 주석으로
     ])
 
   def __len__(self):
